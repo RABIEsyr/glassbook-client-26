@@ -23,9 +23,11 @@
     <br />
     
     <div class="add-btn">
-
+      
       <v-layout align-center justify-center>
-        {{userName}}
+        <span style="color: black">
+        {{userName}} 
+      </span>
         <v-flex>
           <div class="text-xs-center">
             <div style="margin-left: -20px; display: contents">
@@ -37,10 +39,7 @@
                 v-if="userId !== paramsId.id && !isFriend"
                 depressed
                 color="primary"
-                @click="
-                  addRequest(paramsId.id);
-                  reload();
-                "
+                @click="addRequest(paramsId.id);" 
               >
                 {{ isFriendRequestExist }}
               </v-btn>
@@ -58,8 +57,12 @@
                 depressed
                 color="primary"
               >
-                Friend
-              </v-btn>
+               <span style="margin-left: 30%">
+                  Friend
+               </span>
+              <v-btn style="margin-left:100px; color: black;"
+              @click.stop="removeFriend()">X</v-btn>
+            </v-btn>
             </div>
           </div>
         </v-flex>
@@ -78,6 +81,7 @@
         :likeNumber="post.likes.length"
         :likesArr="post.likes"
         :owner="post.owner"
+        :date="post.date"
         :isEdit2="false"
       >
       </my-post>
@@ -113,6 +117,7 @@ export default {
     }),
     userName: null 
   }),
+  
   computed: {
     ...mapGetters({
       initRequest: types.INITIAL_REQUEST,
@@ -125,8 +130,8 @@ export default {
       return this.$store.getters.getUserSrchPic;
     },
     isFriendRequestExist() {
-      let vm = this;
-      vm.$forceUpdate();
+      // let vm = this;
+      // vm.$forceUpdate();
       return this.requestPending ? "Request Pending" : "Add Friend";
     },
     posts() {
@@ -218,12 +223,34 @@ export default {
        
   },
   methods: {
-    ...mapActions({
-      addRequest: types.ADD_REQUEST,
-    }),
-    reload() {
-      setTimeout(()=> this.$router.go(`/user/${this.paramsId.id}`),2000)
+    addRequest(id) {
+      axios
+        .post(
+          "http://localhost:3000/friend-request/new-request",
+          {
+            id: id,
+          },
+          {
+            headers: {
+              authorization: localStorage.getItem("token"),
+            },
+          }
+        )
+        .then((response) => {
+          if (response.data.success) {
+            console.log('frien request response: ', response);
+            this.requestPending = true;
+            this.socket.emit("new-fr-req", id);
+            this.socket.emit("get-fr-req-data", id);
+          }
+        });
     },
+    ...mapActions({
+     // addRequest: types.ADD_REQUEST,
+    }),
+    // reload() {
+    //   setTimeout(()=> this.$router.go(`/user/${this.paramsId.id}`),2000)
+    // },
     scroll() {
       let t = this;
       $(window).scroll(function () {
@@ -240,6 +267,13 @@ export default {
 inPostClick(post) {
       console.log("Posts.vue inPostClick", post);
     },
+    removeFriend() {
+      this.isFriend = false;
+      this.requestPending = false;
+        this.socket.emit('remove-friend', {
+          id: this.$route.params.id
+        });
+    }
   },
 
   mounted() {

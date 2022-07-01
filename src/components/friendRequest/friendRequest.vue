@@ -72,8 +72,8 @@ export default {
     }),
   },
   created() {
-    this.request();
-    setTimeout(this.removeSubmittedFriendRequest, 1000);
+     this.request();
+    // setTimeout(this.removeSubmittedFriendRequest, 1000);
 
     this.socket.on("get-fr-req-data", (data) => {
       this.$store.dispatch(types.GET_FRIEND_REQUEST);

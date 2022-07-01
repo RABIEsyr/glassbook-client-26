@@ -11,6 +11,9 @@ const socket = io("http://localhost:3000", {
   transports: ['websocket']
 });
 
+const {RTCPeerConnection} = window;
+const rtcPeerConnection = new RTCPeerConnection();
+
 Vue.use(Vuex);
 
 const uri = "http://localhost:3000";
@@ -34,7 +37,13 @@ export default new Vuex.Store({
     messages: [],
     userPosts: [],
     getAllMessages : [],
-    isMatchId: false
+    isMatchId: false,
+    unreadMessage: [],
+    encryptChat: [],
+    rtcPeerConnection,
+    ingoingCall: false,
+    animated: true,
+    username: null,
   },
   getters: {
     getAuth() {
@@ -97,6 +106,24 @@ export default new Vuex.Store({
     },
     matchId(state) {
       return state.isMatchId
+    },
+    [types.UNREAD_MESSAGE]: (state) => {
+      return state.unreadMessage;
+    },
+    getEncryptChatList: (state) => {
+      return state.encryptChat;
+    },
+    getRtcPeerConnection(state) {
+      return state.rtcPeerConnection;
+    },
+    getIngoingCall(state) {
+      return state.ingoingCall;
+    },
+    getAnimationStatus(state) {
+      return state.animated;
+    },
+    getUsername(state) {
+      return state.username;
     }
   },
   mutations: {
@@ -141,9 +168,8 @@ export default new Vuex.Store({
       let friendRequest = localStorage.getItem("friendRequest");
       if (friendRequest === null) friendRequest = "";
       localStorage.setItem("friendRequest", friendRequest + "," + id);
-
-      // }
     },
+    
     [types.GET_FRIEND_REQUEST_LENGTH]: (state, payload) => {
       state.friendRequestLength = payload;
     },
@@ -327,6 +353,35 @@ export default new Vuex.Store({
           state.userPosts.splice(i, 1)
         }
       }  
+    },
+    [types.UNREAD_MESSAGE]: (state, payload) => {
+      state.unreadMessage.push(payload);
+    },
+    setEncryptChatList: (state, payload) => {
+      state.encryptChat.push(payload);
+    },
+    changeOnlineStatus: (state, payload) => {
+      console.log('store store store', payload, state.friendsList)
+      state.friendsList.map((friend) => {
+        console.log('friend', friend)
+        if (friend['id'] == payload.userId) {
+        if (payload.status == 'offline') {
+          friend['status'] = false;
+        }
+        if (payload.status == 'online') {
+          friend['status'] = true;
+        }
+      }
+      })
+    },
+    IngoingCall(state, payload) {
+      state.ingoingCall = payload;
+    },
+    setAnimation(state, payload) {
+      state.animated = payload
+    },
+    setUsername(state, payload) {
+      state.username = payload;
     }
   },
 
@@ -371,6 +426,7 @@ export default new Vuex.Store({
     },
     socketOnConnection({ commit }, payload) {
       socket.emit("msg", payload);
+      console.log('vuex, mas payload', payload)
       commit("socketsendMessage");
     },
     socketOnReceive() {
@@ -417,27 +473,27 @@ export default new Vuex.Store({
           commit("get-UserSearch-Pic", res.data);
         });
     },
-    [types.ADD_REQUEST]: ({ commit }, id) => {
-      axios
-        .post(
-          "http://localhost:3000/friend-request/new-request",
-          {
-            id: id,
-          },
-          {
-            headers: {
-              authorization: localStorage.getItem("token"),
-            },
-          }
-        )
-        .then((response) => {
-          if (response) {
-            commit(types.ADD_REQUEST, id);
-            socket.emit("new-fr-req", id);
-            socket.emit("get-fr-req-data", id);
-          }
-        });
-    },
+    // [types.ADD_REQUEST]: (_, id) => {
+    //   axios
+    //     .post(
+    //       "http://localhost:3000/friend-request/new-request",
+    //       {
+    //         id: id,
+    //       },
+    //       {
+    //         headers: {
+    //           authorization: localStorage.getItem("token"),
+    //         },
+    //       }
+    //     )
+    //     .then((response) => {
+    //       if (response) {
+    //         //commit(types.ADD_REQUEST, id);
+    //         socket.emit("new-fr-req", id);
+    //         socket.emit("get-fr-req-data", id);
+    //       }
+    //     });
+    //},
 
     [types.GET_FRIEND_REQUEST_LENGTH]: ({ commit }) => {
       axios

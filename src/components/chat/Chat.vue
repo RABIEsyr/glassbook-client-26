@@ -4,7 +4,7 @@
     max-width="500"
   >
     <v-toolbar
-      color="deep-purple accent-4"
+      color="#1565C0"
       dark
     >
 
@@ -42,7 +42,7 @@
         </v-list-item-content>
         
         <v-list-item-icon>
-          <v-icon :color="chat.active ? 'deep-purple accent-4' : 'grey'">
+          <v-icon :color="chat.active ? 'deep-purple accent-4' : 'grey'" @click="openNewMessage(chat.from._id, chat.to._id)">
             mdi-message-outline
           </v-icon>
         </v-list-item-icon>
@@ -94,7 +94,7 @@ export default {
   }),
   created() {
     // this.getAllMessage()
-    
+    this.socket.emit('some', 'some')
      axios.get("http://localhost:3000/get-all-messages",
        {
         headers: {
@@ -173,6 +173,14 @@ export default {
             var d = new Date(b.date);
             return d -c ;
         });   
+    },
+    openNewMessage(firstId, secondId) {
+      if(localStorage.getItem('userID') == secondId) {
+        this.$router.push({name:'private-chat', params: {receiverID: firstId}})
+      } else {
+        this.$router.push({name:'private-chat', params: {receiverID: secondId}})
+      }
+      
     }
   }
 

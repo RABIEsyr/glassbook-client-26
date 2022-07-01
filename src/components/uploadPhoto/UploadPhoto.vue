@@ -27,7 +27,7 @@
     </v-row>
   </v-container>  -->
 
-  <div class="main-upload-photo-div">
+  <div class="main-upload-photo-div" :class="{'div-mobile': windowWidtha < 321}">
     <v-container>
       <v-form ref="form" lazy-validation :class="['form-image']">
         <v-row>
@@ -176,5 +176,9 @@ label {
 .form-image {
   /* background-color:#5b86d6;
   text-align: center; */
+}
+
+.div-mobile {
+  margin-left: 50px;
 }
 </style>

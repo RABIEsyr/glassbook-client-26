@@ -23,3 +23,5 @@ export const EDIT_POST = 'editPost';
 export const EDIT_USER_POST = 'editUserPost';
 export const DELETE_POST = 'deletePost';
 export const DELETE_USER_POST = 'deleteUserPost';
+export const UNREAD_MESSAGE = 'unreadMessage'
+//export const ONLIN_OFLINT_STATUS = 'onlineOfflineStatus'

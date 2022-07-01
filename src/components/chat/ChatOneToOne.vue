@@ -6,31 +6,35 @@
           cols="12"
           class="pa-2"
           >
-           <h1 class="head">Vue.js Chat Box</h1>
-<main id="ap">
-  <section ref="chatArea" class="chat-area">
-    <p v-for="message in messages" :key="message.body" class="message" 
-     :class="{ 'message-out': message.author === 'you', 'message-in': message.author !== 'you' }"
-    >
-      {{ message.body }}
-    </p>
-  </section>
+          <router-link :to="'/user/' + receiverId"> <h1 class="head">{{receiverName}}</h1> </router-link>
+          <main id="ap">
+            <section ref="chatArea" class="chat-area">
+              <p v-for="message in messages" :key="message._id" class="message"
+              :style="{'word-wrap': 'break-word'}"
+              :class="{ 'message-out': message.author === 'you', 'message-in': message.author !== 'you' }"
+              >
+              
+                {{ message.body}}
+                
+              </p>
+            </section>
 
-  <section class="chat-inputs">
-
-    <form @submit.prevent="sendMessage()" id="person1-form">
-      <label for="person1-input"></label>
-      <input v-model="bobMessage" id="person1-input" type="text" placeholder="Type your message">
-      <button type="submit">Send</button>
-    </form>
-  </section>
-</main>
+            <section class="chat-inputs">
+              <form @submit.prevent="sendMessage()" id="person1-form">
+                <label for="person1-input"></label>
+                <input v-model="bobMessage" id="person1-input" type="text" placeholder="Type your message" required>
+                <button type="submit">Send<i class="material-icons" style="font-size:16px;color:blue">navigate_next</i></button>
+              </form>
+            </section>
+          </main>
         </v-col>
       </v-row>
     </v-container>
      
 
-
+    <router-link :to="'/encr-private-chat/'+ $route.params.receiverID">
+    E-E encryption
+    </router-link>
   </div>
 </template>
 
@@ -38,7 +42,6 @@
 import io from "socket.io-client";
 import { mapActions, mapGetters } from "vuex";
 import * as types from "../../store/types";
-
 import axios from "axios";
 
 export default {
@@ -49,6 +52,8 @@ export default {
              }),
         bobMessage: '',
         youMessage: '',
+        receiverName: '',
+        receiverId: this.$route.params.receiverID,
         messages: [
         // {
         //     body: 'Welcome to the chat, I\'m Bob!',
@@ -161,13 +166,35 @@ created() {
        this.$nextTick(() => {
               document.getElementsByClassName('chat-area')[0].scrollTop = '11111';                      
         }) 
-    }
+    } 
    
   })
+  axios.post('http://localhost:3000/users/get-name-chat', 
+  {id: this.$route.params.receiverID },
+  {
+        headers: {
+          authorization: localStorage.getItem("token"),
+        }
+  }).then(res => {
+    this.receiverName = res.data.name
+  })
 
-},
+  if (this.$route.params.receiverID == localStorage.getItem('userID')) {
+      this.$router.push('/')
+  }
+
+  axios.post("http://localhost:3000/get-all-messages/read-message", 
+          {receiverId: this.$route.params.receiverID }, {
+            headers: { authorization: localStorage.getItem("token") },
+          })
+          .then((res) => {
+            
+            this.socket.emit("new-post", res);
+          });
+
+          this.socket.emit('some', 'some')
+}, 
 destroyed() {
-  console.log('destroyed')
  this.messages = []
  this.$store.dispatch(types.RESET_CHAT_MESSAGES)
 }
@@ -226,4 +253,7 @@ destroyed() {
   margin: auto;
   padding: 10px;
 }
+/* .msg-content {
+  display: inline;
+} */
 </style>
