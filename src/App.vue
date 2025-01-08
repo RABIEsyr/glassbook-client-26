@@ -3,89 +3,10 @@
     <!-- <router-view v-if="!isAuth"></router-view> -->
     <router-view v-if="!isClientAuth"></router-view>
     <div id="app" v-else>
-      
       <v-app id="inspire">
         <v-app id="inspire">
            <!-- <v-parallax :src="backgroundgimage" height="100%" width="100%" dark> -->
-          <v-navigation-drawer
-            v-model="drawer"
-            :clipped="$vuetify.breakpoint.lgAndUp"
-            app
-            class="my-custom-navigation-drawer"
-          >
-            <v-list>
-              <template>
-                <v-row>
-                  <v-col cols="6"> </v-col>
-                  <v-col cols="6" class="text-center">
-                    <!-- <a
-                  href="#!"
-                  class="body-2 black--text"
-                >EDIT</a> -->
-                  </v-col>
-                </v-row>
-                <!-- <v-list-group
-              v-else-if="item.children"
-              :key="item.text"
-              v-model="item.model"
-              :prepend-icon="item.model ? item.icon : item['icon-alt']"
-              append-icon=""
-            >
-              <template v-slot:activator>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    {{ item.text }}
-                  </v-list-item-title>
-                </v-list-item-content>
-              </template>
-              <v-list-item
-                v-for="(child, i) in item.children"
-                :key="i"
-                link
-              >
-                <v-list-item-action v-if="child.icon">
-                  <v-icon>{{ child.icon }}</v-icon>
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    {{ child.text }}
-                  </v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-group> -->
-
-                <router-link to="/chat" style="text-decoration: none; ">
-                  <v-list-item style="margin-top:200%">
-                    <v-list-item-action>
-                      <v-icon color="#1976d2">mdi-message</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                      <v-list-item-title :style="{ color: '#e91e63' }">
-                        Messenger
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </router-link>
-                <router-link to="/get-friends" style="text-decoration: none">
-                  <v-list-item>
-                    <v-list-item-action>
-                      <v-icon color="#1976d2">mdi-account</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                      <v-list-item-title :style="{ color: '#1976d2' }">
-                        Friends
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </router-link>
-                <router-link to="/settings" style="text-decoration: none">
-                  <v-list-item>
-                      <v-icon color="#1976d2">mdi-cog</v-icon>
-                  </v-list-item>
-                </router-link>
-              </template>
-            </v-list>
-          </v-navigation-drawer>
+        
 
           <v-app-bar
             :clipped-left="$vuetify.breakpoint.lgAndUp"
@@ -98,10 +19,10 @@
               class="myApContent"
             ></v-app-bar-nav-icon> -->
 
-             <v-app-bar-nav-icon
+             <!-- <v-app-bar-nav-icon
               @click.stop="expanddNav = !expanddNav"
               class="myApContent"
-            ></v-app-bar-nav-icon>
+            ></v-app-bar-nav-icon> -->
             
             <CustomNavDrawer :expandd.sync="expanddNav"/>
 
@@ -112,7 +33,7 @@
               <span
                 @click="goHome()"
                 style="cursor: pointer"
-                v-if="windowWidth > 330"
+                v-if="windowWidth > 500"
                 class="glassbook"
                 >Glass Book
               </span>
@@ -300,9 +221,13 @@
                     </v-list-item-group>
                   </v-card>
                 </div>
+               
+
                 <router-view> </router-view>
               </v-content>
+               
             </v-container>
+            <!-- <button @click="setRenderKey(1)">ccc</button> -->
           </v-main>
           <v-dialog v-model="dialog2" width="500">
             <!-- <template v-slot:activator="{ on, attrs }">
@@ -330,14 +255,15 @@
             </notify-post>
           </v-dialog>
           <v-btn
-            v-if="$route.name == 'Posts'"
+            v-if="$route.name == 'Posts' && windowWidth2 <= 989"
             bottom
             color="pink"
             dark
             fab
             fixed
             right
-            @click="dialog = !dialog"
+           
+            @click.stop="showScheduleForm=true"
           >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
@@ -412,7 +338,7 @@
        
         <!-- </v-parallax> -->
         </v-app>
-   
+        <StepperNewPostDialog  v-model="showScheduleForm"/>
       </v-app>
       
     </div>
@@ -430,6 +356,8 @@ import { mapGetters, mapMutations } from "vuex";
 //import cryptico from 'cryptico';
 // import  {CometChat} from "@cometchat-pro/chat";
 import CustomNavDrawer from './components/customNavdrawer/customNavdrawer';
+
+import StepperNewPostDialog from './components/custom-new-post/stepperNewPostDialog.vue'
 
 global.jQuery = require("jquery");
 var $ = global.jQuery;
@@ -517,10 +445,12 @@ export default {
     callerName: '',
     backgroundgimage: null,
     expanddNav: false,
+    showScheduleForm: false
   }),
   computed: {
     ...mapGetters({
       getUnreadMessage: types.UNREAD_MESSAGE,
+      getrerendercomponent: 'getrerendercomponent',
       // isIngoingCall: 'getIngoingCall'
     }),
     isAuth() {
@@ -719,7 +649,9 @@ export default {
 
   methods: {
     ...mapMutations({
-      setUsername: 'setUsername'
+      setUsername: 'setUsername',
+      setRenderKey: 'setrerendercomponent'
+
     }),
     initializeApp() {
       // const appId = process.env.VUE_APP_COMMETCHAT_APP_ID;
@@ -771,6 +703,7 @@ export default {
     onResize() {
       console.log("App.vue-onResize()", this.windowWidth2);
       this.windowWidth2 = window.innerWidth;
+       
     },
     searchUser() {
       $("document").ready(function () {
@@ -859,6 +792,7 @@ export default {
   watch: {
     windowWidth2(oldWidth, newWidth) {
       this.txt = `it changed to ${newWidth} from ${oldWidth}`;
+      eventBus.onGlobalResize(newWidth)
     },
   },
   mounted() {
@@ -875,7 +809,8 @@ export default {
   },
   components: {
     "notify-post": Post,
-    CustomNavDrawer
+    CustomNavDrawer,
+    StepperNewPostDialog
   },
 };
 </script>
@@ -1103,7 +1038,8 @@ export default {
     animation: skew 3s infinite;
   transform: skew(20deg);
   animation-direction: alternate;
-
+  margin-left: 10%;
+  margin-right: 10%;
 }
 
 @keyframes skew {

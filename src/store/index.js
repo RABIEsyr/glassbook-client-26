@@ -44,6 +44,8 @@ export default new Vuex.Store({
     ingoingCall: false,
     animated: true,
     username: null,
+    rerendercomponent: 0,
+    postProgress: false,
   },
   getters: {
     getAuth() {
@@ -124,6 +126,12 @@ export default new Vuex.Store({
     },
     getUsername(state) {
       return state.username;
+    },
+    getrerendercomponent(state) {
+      return state.rerendercomponent;
+    },
+    getpostProgress(state) {
+      return state.postProgress;
     }
   },
   mutations: {
@@ -382,7 +390,13 @@ export default new Vuex.Store({
     },
     setUsername(state, payload) {
       state.username = payload;
-    }
+    },
+    setrerendercomponent(state, payload) {
+      state.rerendercomponent = payload;
+    },
+    setpostProgress(state, payload) {
+      state.postProgress = payload
+    } 
   },
 
   actions: {

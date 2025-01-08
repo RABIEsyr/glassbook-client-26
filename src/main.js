@@ -14,6 +14,9 @@ import VueScrollTo from 'vue-scrollto'
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {faPhone} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome';
+
+import VueSimpleAlert from 'vue-simple-alert';
+
 library.add(faPhone);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 
@@ -23,7 +26,8 @@ Vue.use(Vuelidate);
 Vue.use(VueWindowSize);
 Vue.use(CountryFlag);
 Vue.use(VueScrollTo)
-Vue.use(Chat)
+Vue.use(Chat);
+Vue.use(VueSimpleAlert);
 
 Vue.filter('date', function (value) {
   let a = new Date(value);
@@ -57,6 +61,9 @@ export const eventBus = new Vue({
     },
     marginTopCustomPost(top) {
       this.$emit('marginTopCus', top)
+    },
+    onGlobalResize(width) {
+      this.$emit('onGlobalResize', width);
     }
   }
 });

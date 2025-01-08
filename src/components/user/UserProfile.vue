@@ -25,7 +25,7 @@
     <div class="add-btn">
       
       <v-layout align-center justify-center>
-        <span style="color: black">
+        <span style="color: #e91e63; margin-right: 30px; background-clip: border-box; border-radius: 50%">
         {{userName}} 
       </span>
         <v-flex>
@@ -61,7 +61,11 @@
                   Friend
                </span>
               <v-btn style="margin-left:100px; color: black;"
-              @click.stop="removeFriend()">X</v-btn>
+              @click.stop="removeFriend()">
+            <span style="color: red;"> 
+              X
+            </span>
+            </v-btn>
             </v-btn>
             </div>
           </div>

@@ -1,24 +1,48 @@
 <template>
 <div>
   <div class="divo" >
-           <input @click="isAdd()" class="menu__toggle" type="checkbox" id="menu-toggle" />
-          <label class="menu__toggle-label" for="menu-toggle"></label> 
+           <input @click="isAdd()" class="menu__toggle" type="checkbox" id="menu-toggle" v-model="ss"/>
+          <label class="menu__toggle-label" for="menu-toggle" ></label> 
          <label class="menu__toggle-label menu__toggle-label--closer" for="menu-toggle" >
          <svg  class="menu__icon" preserveAspectRatio="xMinYMin" viewBox="0 0 24 24">
             <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"></path>
           </svg>
-         <svg class="menu__icon" preserveAspectRatio="xMinYMin" viewBox="0 0 24 24">
+         <svg class="menu__icon" preserveAspectRatio="xMinYMin" viewBox="0 0 24 24" >
             <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path>
          </svg>
         </label> 
-    <ul class="menu__content">
-        <li :class="{menu__item: true, customLiMenu: expand}" style="--x: 20; --y: 18;"><a class="menu__link" href="#HOME">HOME</a></li>
+        <ul class="menu__content" >
+        <!-- <li :class="{menu__item: true, customLiMenu: expand}" style="--x: 20; --y: 18;"><a class="menu__link" href="#HOME">HOME</a></li>
         <li :class="{menu__item: true}" style="--x: 70; --y: 28;"><a class="menu__link" href="#ABOUT">ABOUT</a></li>
         <li :class="{menu__item: true, customLiMenu3: expand}" style="--x: 26; --y: 48;"><a class="menu__link" href="#CONTACT">CONTACT</a></li>
-        <li :class="{menu__item: true, customLiMenu2: expand}"  style="--x: 72; --y: 52;"><a class="menu__link" href="#WORK">WORK</a></li>
+        <li :class="{menu__item: true, customLiMenu2: expand}"  style="--x: 72; --y: 52;"><a class="menu__link" href="#WORK">WORK</a></li> -->
+        <li :class="{menu__item: true, customLiMenu: expand}" style="--x: 20; --y: 18;" @click="ss = !ss">
+        <router-link to="/chat" style="text-decoration: none; ">
+                      <v-icon class="menu__link" color="#ffffff" size="50" style="margin-left: 55%">mdi-message</v-icon>
+                     
+                </router-link>
+        </li>
+        <li :class="{menu__item: true}" style="--x: 70; --y: 28;" @click="ss = !ss">
+          <router-link to="/get-friends" style="text-decoration: none; ">
+                      <v-icon class="menu__link" color="#ffffff" size="50" style="margin-left: 55%">mdi-account</v-icon>
+                     
+                </router-link>
+        </li>
+        <li :class="{menu__item: true, customLiMenu3: ss}" style="--x: 26; --y: 48;" @click="ss = !ss">
+          <router-link to="/settings" style="text-decoration: none; ">
+                      <v-icon class="menu__link" color="#ffffff" size="50" style="margin-left: 55%">mdi-cog</v-icon>
+                     
+                </router-link>
+        </li>
+        <li :class="{menu__item: true, customLiMenu2: ss}"  style="--x: 72; --y: 52;" @click="ss = !ss">
+          <!-- <router-link to="/settings" style="text-decoration: none; "> -->
+              <v-icon class="menu__link" color="#ffffff" size="50" @click="logout()">mdi-logout</v-icon>
+                     
+                <!-- </router-link> -->
+        </li>
     </ul>
   </div>
-    <svg style="position: absolute; left: 100%">
+    <svg style="position: absolute; left: 100%" >
     <!-- <defs> -->
         <!-- <filter id="goo"> -->
             <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="BLUR"></feGaussianBlur>
@@ -34,14 +58,30 @@
 export default {
     data() {
         return {
-            expand: false
+            expand: false,
+            spread: false,
+            s: false,
+            ss: false,
         }
     },
     methods: {
         isAdd() {
             this.expand = this.expand == false ? true : false;
+        },
+        cli() {
+          //  var div = document.getElementById("menu-toggle");
+          //  var el = document.createElement("span");
+          // el.innerHTML = "test";
+          // div.parentNode.insertBefore(el, div.nextSibling);
+        },
+        logout() {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userID");
+          this.$router.push("/login");
         }
-    } 
+    }
+        
+    
 }
 </script>
 
@@ -90,15 +130,15 @@ export default {
   background-color: #e91e63;
   
 }
-.menu__toggle:checked ~ .menu__toggle-label:not(.menu__toggle-label--closer) {
+/* .menu__toggle:checked ~ .menu__toggle-label:not(.menu__toggle-label--closer) {
   --clip: circle(1000% at 0% 0%);
   height: 100vh;
   width: 100vw;
-  /* backdrop-filter: blur(10px); */
-}
+  
+} */
 .menu__toggle:checked ~ .menu__toggle-label .menu__icon:nth-of-type(1) {
   --scale: 0;
-}
+} 
 .menu__toggle:checked ~ .menu__toggle-label .menu__icon:nth-of-type(2) {
   --scale: 1;
 }

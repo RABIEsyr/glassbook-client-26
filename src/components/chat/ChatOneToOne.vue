@@ -9,14 +9,49 @@
           <router-link :to="'/user/' + receiverId"> <h1 class="head">{{receiverName}}</h1> </router-link>
           <main id="ap">
             <section ref="chatArea" class="chat-area">
-              <p v-for="message in messages" :key="message._id" class="message"
-              :style="{'word-wrap': 'break-word'}"
-              :class="{ 'message-out': message.author === 'you', 'message-in': message.author !== 'you' }"
-              >
-              
-                {{ message.body}}
-                
+
+              <v-container>
+      <v-row no-gutters v-for="(message, index) in messages" :key="message._id">
+      <template v-if="message.author !== 'you'">
+        <v-row 
+          
+          >
+          <p :style="{'word-wrap': 'break-word'}" class="message"
+              :class="{ 'message-out': message.author === 'you',
+               'message-in': message.author !== 'you','message-out-delete': message.deletearray.length > 0 ? true : false }"
+              @click="toggleVisibilityButtons(index)">
+              {{ message.body}}
               </p>
+        
+          
+          
+          <h1 v-if="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">44</h1>
+        </v-row>
+      </template>
+      <template v-else>
+       <v-row  style="background: white; "  :style="{'color': 'black', 'margin-left': '40%'}">
+        <!-- <h1 :style="{'color': 'black', 'margin-left': '40%'}" >{{windowWidth2}}</h1> -->
+        <h1
+         v-show="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">55</h1>
+        <p :style="{'word-wrap': 'break-word', 'float': 'right',}" class="message"
+        @click="toggleVisibilityButtons(index)"
+              :class="{ 'message-out': message.author === 'you', 'message-in': message.author !== 'you', 
+              'message-out-delete': message.deletearray.length > 0 ? true : false
+            }">
+              {{ message.body}}
+              </p>
+       </v-row>
+          
+       
+        
+         
+      </template>
+        
+      </v-row>
+              </v-container>
+
+             
+             
             </section>
 
             <section class="chat-inputs">
@@ -67,7 +102,9 @@ export default {
         //     body: 'You\'re most welcome',
         //     author: 'bob'
         // }
-        ]
+        ],
+        windowWidth2: window.innerWidth,
+        visibleButtons: [],
   }
 },
 methods: {
@@ -111,8 +148,39 @@ methods: {
       // })
       this.$nextTick(() => {
      document.getElementsByClassName('chat-area')[0].scrollTop = '11111';                      
-  }) 
+  })
   },
+  onResize() {
+      console.log("App.vue-onResize()", this.windowWidth2);
+      this.windowWidth2 = window.innerWidth;
+       
+    },
+    toggleVisibilityButtons(index) {
+      
+      this.$set(this.visibleButtons, index, !this.visibleButtons[index])
+      console.log(this.visibleButtons)
+      console.log(this.messages[index])
+    },
+    deleteRestoreMessage(id, index) {
+    console.log('ypor: ', id)
+    axios.post("http://localhost:3000/chat-message/delete-msg",
+    {id: id },
+       {
+        headers: {
+          authorization: localStorage.getItem("token"),
+        },
+      }).then((res) => {
+       
+        if(res.data.success) {
+          console.log('eee', res)
+          if (res.data.message == "message confirm delete") {
+            this.messages.splice(index, 1)
+            this.visibleButtons.splice(index, 1)
+          }
+        }
+        console.log(res)
+      })
+    },
   ...mapActions({
     getChatMessage: types.GET_CHAT_MESSAGES
   })
@@ -122,6 +190,12 @@ computed: {
     getMessages: types.GET_CHAT_MESSAGES
   })
 },
+watch: {
+    windowWidth2(oldWidth, newWidth) {
+      var  txt = `it changed to ${newWidth} from ${oldWidth}`;
+      console.log('sxxx', txt)
+    },
+  },
 created() {
   // this.getChatMessage(this.$route.params.receiverID).then(() => {
   //   const msgs = this.getMessages;
@@ -135,11 +209,12 @@ created() {
           authorization: localStorage.getItem("token"),
         },
       }).then((res) => {
+        console.log('msgd22', res.data)
         var msgs = res.data;
         msgs.map((m) => {
           if (m.from == localStorage.getItem('userID')) {
             console.log('0000', localStorage.getItem('userID'), '0000', m.from )
-            this.messages.push({body: m.text, author: 'bob'})
+            this.messages.push({body: m.text, author: 'bob', _id: m._id, deletearray: m.delete})
             this.$nextTick(() => {
               document.getElementsByClassName('chat-area')[0].scrollTop = '11111';                      
               }) 
@@ -148,7 +223,7 @@ created() {
               author: 'bob'
             }
           } else {
-             this.messages.push({body: m.text, author: 'you'})
+             this.messages.push({body: m.text, author: 'you', _id: m._id, deletearray: m.delete})
             
            return {
               body: m.text,
@@ -194,9 +269,15 @@ created() {
 
           this.socket.emit('some', 'some')
 }, 
+mounted() {
+    this.$nextTick(() => {
+      window.addEventListener("resize", this.onResize);
+    });
+  },
 destroyed() {
  this.messages = []
  this.$store.dispatch(types.RESET_CHAT_MESSAGES)
+ window.removeEventListener("resize", this.onResize);
 }
 }
 </script>
@@ -227,7 +308,13 @@ destroyed() {
 .message-out {
   background: #407FFF;
   color: white;
-  margin-left: 50%;
+  /* margin-left: 0%; */
+  /* float: right; */
+}
+.message-out-delete {
+  background: red !important;
+  color: white !important;
+  /* margin-left: 0%; */
   /* float: right; */
 }
 .message-in {

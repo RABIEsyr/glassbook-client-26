@@ -1,6 +1,6 @@
 <template>
-  <div :key="localreRenderComponent">
-    <div  v-if="!applyPost">
+  <v-dialog v-model="show" max-width="500px">
+    <div>
         <div  :style="{'margin-left': marginLeft,  'margin-top': '-55px',  'position': 'absolute','z-index': 1}">
          <v-btn v-if="!isPosting"
             class="ma-2"
@@ -9,7 +9,7 @@
             fab
             color="indigo"
             style="background-color: #e91e63;"
-            @click="startSteps(); "
+            @click="startSteps()"
        >
          <v-icon>mdi-pencil</v-icon>
         </v-btn>
@@ -22,26 +22,25 @@
             :color="value == 100 ? 'teal': 'pink'"
             >
             <span v-if="!hover">{{ value }}</span>
-            <!-- <v-btn fab color="purple" v-else @click.prevent="isPosting = false; resee()">reset</v-btn> -->
+            <v-btn fab color="purple" v-else @click.prevent="isPosting = false">reset</v-btn>
             </v-progress-circular>
 
          </v-hover>
         </div>
       <div >
           <v-sheet
-          
                 class="custom-sheet"
-                color="grey lighten-3"
+                 color="grey lighten-3"
                 elevation="24">
             <v-stepper
-             v-model="e6"
-             vertical
+            v-model="e6"
+            vertical
              color="grey lighten-3"
             >
         <v-stepper-step
         :complete="e6 > 1"
         step="1"
-        :editable = 'setEdit'
+        editable
         :rules="[testStep1]"
         id="stepid1"
         >
@@ -91,7 +90,7 @@
                       </label>
 
                       <input
-                      :key="fileInputKey"
+                      
                         id="file-input"
                         type="file"
                         ref="myFile"
@@ -139,7 +138,7 @@
         </v-stepper-content>
 
         <v-stepper-step step="4">
-        Publish
+        View setup instructions
         </v-stepper-step>
         <v-stepper-content step="4">
         <v-card
@@ -151,9 +150,9 @@
             color="primary"
             @click="savePost()"
         >
-            Post
+            Confirm
         </v-btn>
-        <v-btn text @click="reset()">
+        <v-btn text>
             Cancel
         </v-btn>
         </v-stepper-content>
@@ -161,17 +160,12 @@
           </v-sheet>
     </div>  
  </div>
- <v-progress-circular
- v-if="applyPost"
-      color="primary"
-      indeterminate
-    ></v-progress-circular>
-  </div>
+  </v-dialog>
 </template>
 
 <script>
 import PostReview from '../post/postReview.vue';
-import {mapGetters, mapMutations} from 'vuex';
+import {mapGetters} from 'vuex';
 import { eventBus } from '../../main';
 import axios from "axios";
 import io from "socket.io-client";
@@ -182,6 +176,7 @@ export default {
         "position",
         "maxWidth",
         "marginLeft",
+        'value'
     ],
 data () {
     const myData = {
@@ -195,14 +190,8 @@ data () {
         value: 0,
         exutdedFunction1: false,
         exutdedFunction10: false,
-        fileInputKey: 0,
-        setEdit: false,
-        rePost: false,
-        applyPost: false,
-        localreRenderComponent: 0,
-        saveX: null,
-        saveXupdate: null,
-         socket: io("http://localhost:3000", {
+
+        socket: io("http://localhost:3000", {
       query: { token: localStorage.getItem("token") },
     }),
     // selectedFile: null,
@@ -212,9 +201,6 @@ data () {
         
  },
  methods: {
-    ...mapMutations({
-        setpostProgress: 'setpostProgress'
-    }),
      isComplete1() {
         if (this.postTitle == '' || this.postTitle.length > 25 ) {          
                  this.step0 = 1;
@@ -224,9 +210,7 @@ data () {
 
                 if (this.exutdedFunction1) {
                     this.exutdedFunction1 = false;
-                     if (this.value > 0) {
-                        this.value -= 50;
-                     }
+                     this.value -= 50;
                 }
         }
         else {
@@ -237,12 +221,6 @@ data () {
             if (!this.exutdedFunction1) {
                  this.exutdedFunction1 = true
                  this.value += 50;
-            }
-            if (this.rePost && !this.exutdedFunction1) {
-                 this.exutdedFunction1 = true
-                 if (this.value < 100) {
-                    this.value += 50;
-                 }
             }
             }
         //    const image = require('@/assets/gallery.png')
@@ -347,7 +325,6 @@ data () {
         startSteps() {
             this.e6 = 1;
             this.isPosting = true;
-            this.setEdit = true
         },
         previousStep2() {
             // const text = require('@/assets/text.png')
@@ -392,16 +369,11 @@ data () {
      }, 
      
      savePost() {
-        if (this.selectedFile && this.postTitle) {
-            
-            console.log('selected file', this.selectedFile)
-            const fd = new FormData();
+      const fd = new FormData();
       fd.append("file", this.selectedFile, this.selectedFile.name);
       fd.append("data", this.postTitle);
       this.dialog = false;
       try {
-        this.applyPost = true
-        this.setpostProgress(true);
         axios
           .post("http://localhost:3000/post/new-post", fd, {
             headers: { authorization: localStorage.getItem("token") },
@@ -411,69 +383,15 @@ data () {
             this.socket.emit("new-post", res);
           if (res.data.success) {
             this.isPosting = false
-            //   this.e6 = 1
-            this.postTitle = null
-             this.selectedFile = null;
-             //  this.value = 0;
-             this.fileInputKey++;
-            // this.$refs.myFile.reset();
-            // this.$refs.myFile.$el.value=null
-            this.isFileSelected = false
-            this.image = null
-            var output = document.getElementById("output2");
-            output.src = null;
-            this.$refs.myFile.value = '';
-           
-            // this.testStep1()
-            // this.testStep2()
-            // this.testStep3()
-          
-            this.$alert( '' , 'post' , 'success')
-             fd.delete('file');
-             fd.delete('data')
-             // 
-              //this.resetcustom()
-              //this.rePost = true;
-              
+            // this.e6 = 1
+            // this.postTitle = null
           }
-          
           });
-          setTimeout(() => {
-            this.applyPost = false
-            console.log('this.renderComponent += 1', this.renderComponent)
-            this.$alert( '' , 'post' , 'success')
-            this.$forceUpdate();
-            this.localreRenderComponent +=1
-            this.exutdedFunction1 = false
-            this.exutdedFunction10 = false
-            this.startSteps()
-            this.editable = false
-   this.selectedFile = null
-            this.e6 = 0;
-         this.postTitle = '';
-         this.step0 = 0;
-         this.step2 = 0
-         this.value = 0;
-         this.isPosting = false
-         this.repost = true
-         this.setpostProgress(false);
-
-          }, 1000);
-         
-          
       } catch (error) {
         console.log("App.vue, error: ", error);
-        this.$alert( '' , 'post' , 'error')
       }
-        }
-      
     },
-       resetcustom() {
-        this.$forceUpdate();
-        this.postTitle = null
-        this.isComplete1()
-        this.step0 = 1;
-       }
+       
  },
  watch: {
     e6(val) {
@@ -490,10 +408,8 @@ data () {
  },
  
  mounted() {
- this.saveX = document.querySelectorAll('span.v-stepper__step__step')
- 
      var x = document.querySelectorAll('span.v-stepper__step__step');
-      
+     
     //   const text = require('@/assets/text.png')
     //   const image = require('@/assets/gallery.png');
     //   const preview = require('@/assets/preview.png');
@@ -543,64 +459,18 @@ data () {
  beforeCreate() {
     this.$nextTick().then(() => document.body.classList.remove('.v-application--is-ltr.theme--light.v-stepper--vertical.v-stepper__content'))
 },
-updated() {
-    // this.saveXupdate = document.querySelectorAll('v-stepper__step__step')
-    // console.log('x update', this.saveXupdate)
-
-   if (this.repost) {
-    this.repost = false
-    var x = document.querySelectorAll('span.v-stepper__step__step');
-      
-      //   const text = require('@/assets/text.png')
-      //   const image = require('@/assets/gallery.png');
-      //   const preview = require('@/assets/preview.png');
-        
-        const text2 = `<svg style="width:15px;height:15px;" viewBox="0 0 24 24">
-                          <path fill="#FFFFFF"  d="M22,22H2V20H22V22M6.2,17.3L4.8,15.9L6.2,14.5L5.5,13.8L4.1,15.2L2.7,13.8L2,14.5L3.4,15.9L2,17.3L2.7,18L4.1,16.6L5.5,18L6.2,17.3M20.5,3L21.7,7.4L20.7,7.7C20.2,6.8 19.8,6 19.3,5.5C18.7,5 18.1,5 17.5,5H15V15.5C15,16 15,16.5 15.3,16.7C15.6,16.9 16.3,16.9 17,16.9V17.9H11V16.9C11.7,16.9 12.3,16.9 12.7,16.7C13,16.5 13,16 13,15.5V5H10.5C9.9,5 9.3,5 8.7,5.4C8.2,5.8 7.7,6.7 7.3,7.6L6.3,7.3L7.5,3H20.5Z"></path>
-                      </svg>` 
-        const image2 = `<svg style="width:15px;height:15px;" viewBox="0 0 24 24">
-                          <path fill="#ffffff"  d="M22,16V4A2,2 0 0,0 20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16M11,12L13.03,14.71L16,11L20,16H8M2,6V20A2,2 0 0,0 4,22H18V20H4V6"></path>
-                      </svg>`
-        const preview2 = `<svg style="width:15px;height:15px;" viewBox="0 0 24 24">
-                          <path fill="#ffffff" d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"></path>
-                      </svg>`  
-        const puplish = `<svg style="width:15px;height:15px;" viewBox="0 0 24 24">
-                          <path fill="#ffffff"  d="M5,4V6H19V4H5M5,14H9V20H15V14H19L12,7L5,14Z"></path>
-                      </svg>`                                       
-          
-      //   x[0].innerHTML = `<img style="height: 30px; width: 30px; " src=${text}>`;
-      //   step1Element = x[0];
-         x[0].innerHTML = text2; 
-        step1Element = x[0];
-        
-      //   x[1].innerHTML = `<img style="height: 40px; width: 32px; " src=${image}>`;
-      //   step2Element = x[1];
-        x[1].innerHTML = image2;
-        step2Element = x[1];  
-  
-  
-      //   x[2].innerHTML = `<img style="height: 40px; width: 32px; " src=${preview}>`;
-      //   step3Element = x[2]
-  
-        x[2].innerHTML = preview2;
-        step3Element = x[2]
-  
-        x[3].innerHTML = puplish;
-  
-  
-        const divBorder = document.querySelectorAll('div.v-stepper__content');
-        div1Border = divBorder[0];
-        div2Border = divBorder[1];
-        div3Border = divBorder[2];
-   }
-  
-  
-},
 computed: {
     ...mapGetters({
-       username: 'getUsername',
-       renderComponent: 'getrerendercomponent'
-    })
+       username: 'getUsername'
+    }),
+    show: {
+      get () {
+        return this.value
+      },
+      set (value) {
+         this.$emit('input', value)
+      }
+    }
 },
  components: {
      PostReview

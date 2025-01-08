@@ -20,8 +20,9 @@
         </my-post>
     </div>
       </v-col>
-      <v-col>
+      <v-col v-if="width > 989">
         <v-btn
+         v-if="!getpostProgress"
           fab
           dark
           small
@@ -30,7 +31,7 @@
           <v-icon class="icon">{{mdiIcon}}</v-icon>
         </v-btn
          >
-        <CustomNewPost :maxWidth.sync="maxWidth2" :marginLeft.sync="marginLeft"/>
+        <CustomNewPost  :maxWidth.sync="maxWidth2" :marginLeft.sync="marginLeft" v-if="width > 989"/>
       </v-col>
     </v-row>
   </v-container>
@@ -44,6 +45,8 @@ import * as types from "../../store/types";
 import io from "socket.io-client";
  import { eventBus } from "../../main";
 import CustomNewPost from '../custom-new-post/stepperNewPost.vue';
+
+import { mapGetters } from "vuex";
 
 global.jQuery = require("jquery");
 var $ = global.jQuery;
@@ -64,14 +67,19 @@ export default {
     marginTop: 3,
   }),
   computed: {
+    ...mapGetters({
+      getpostProgress: 'getpostProgress'
+    }),
     posts() {
       console.log("Posts.vue 1211", this.$store.getters.getPosts)
       return this.$store.getters.getPosts;
     },
-
     comments() {
       return ["aa", "bb"];
     },
+    getWidth() {
+      return window.innerWidth > 940 ? true : false;
+    }
   },
   created() {
     console.log('eeee', this.width)
@@ -85,6 +93,10 @@ export default {
     eventBus.$on("marginTopCus", (mar) => {
        this.marginTop = mar;
        console.log('marrr', mar)
+    });
+
+    eventBus.$on("onGlobalResize", (width) => {
+       this.width = width
     });
   },
 
