@@ -25,14 +25,27 @@
         
           
           
-          <h1 v-if="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">44</h1>
+          <h1 v-if="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">
+            <font-awesome-icon icon="redo" style="color: blue"
+                   v-if="message.deletearray.includes(userID)"></font-awesome-icon>
+             <font-awesome-icon
+             v-if="!message.deletearray.includes(userID)" icon="trash" class='fa fa-trash'
+             :style="{'color': message.deletearray.length > 0 ? 'red' : 'blue'}"></font-awesome-icon>
+          </h1>
         </v-row>
       </template>
       <template v-else>
        <v-row  style="background: white; "  :style="{'color': 'black', 'margin-left': '40%'}">
         <!-- <h1 :style="{'color': 'black', 'margin-left': '40%'}" >{{windowWidth2}}</h1> -->
-        <h1
-         v-show="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">55</h1>
+        <!-- <h1
+         v-show="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">55</h1> -->
+         <h1 v-if="visibleButtons[index]" @click="deleteRestoreMessage(message._id, index)">
+            <font-awesome-icon icon="redo" style="color: blue"
+                   v-if="message.deletearray.includes(userID)"></font-awesome-icon>
+             <font-awesome-icon
+             :style="{'color': message.deletearray.length > 0 ? 'red' : 'blue'}"
+             v-if="!message.deletearray.includes(userID)" icon="trash" class='fa fa-trash'></font-awesome-icon>
+          </h1>
         <p :style="{'word-wrap': 'break-word', 'float': 'right',}" class="message"
         @click="toggleVisibilityButtons(index)"
               :class="{ 'message-out': message.author === 'you', 'message-in': message.author !== 'you', 
@@ -58,7 +71,10 @@
               <form @submit.prevent="sendMessage()" id="person1-form">
                 <label for="person1-input"></label>
                 <input v-model="bobMessage" id="person1-input" type="text" placeholder="Type your message" required>
-                <button type="submit">Send<i class="material-icons" style="font-size:16px;color:blue">navigate_next</i></button>
+                <button type="submit">
+                  <!-- <i class="material-icons" style="font-size:16px;color:blue">navigate_next</i> -->
+                  <font-awesome-icon icon="fas fa-paper-plane" style="color: #407FFF; margin-left: 5px;" />
+                </button>
               </form>
             </section>
           </main>
@@ -105,6 +121,7 @@ export default {
         ],
         windowWidth2: window.innerWidth,
         visibleButtons: [],
+        userID: localStorage.getItem('userID')
   }
 },
 methods: {
@@ -139,9 +156,13 @@ methods: {
       // } else {
       //   alert('something went wrong')
       // }
-      this.messages.push({body: this.bobMessage, author: 'bob'})
+      try {
+        // this.messages.push({body: this.bobMessage, author: 'bob', deletearray: []})
       
       this.$store.dispatch('socketOnConnection', {msg: this.bobMessage, id: this.$route.params.receiverID})
+      } catch (error) {
+        console.log('the error heree')
+      }
       // this.nextTick(() => {
       //   let messageDisplay = this.$refs.chatArea
       //   messageDisplay.scrollTop = messageDisplay.scrollHeight
@@ -160,27 +181,40 @@ methods: {
       this.$set(this.visibleButtons, index, !this.visibleButtons[index])
       console.log(this.visibleButtons)
       console.log(this.messages[index])
+      // console.log(this.messages[index])
     },
     deleteRestoreMessage(id, index) {
-    console.log('ypor: ', id)
+    console.log('message id is: ', id)
     axios.post("http://localhost:3000/chat-message/delete-msg",
-    {id: id },
+    {id: id ,receiverID: this.$route.params.receiverID},
        {
         headers: {
           authorization: localStorage.getItem("token"),
         },
       }).then((res) => {
        
-        if(res.data.success) {
+        if (res.data.success) {
           console.log('eee', res)
           if (res.data.message == "message confirm delete") {
             this.messages.splice(index, 1)
             this.visibleButtons.splice(index, 1)
           }
+          if (res.data.message == 'message delete request') {
+            const messageToUpdate = this.messages.find(m => m._id === id);
+            if (messageToUpdate) {
+              messageToUpdate.deletearray.push(localStorage.getItem('userID'));
+            }
+          }
+          if (res.data.message == 'message restore') {
+            const messageToUpdate = this.messages.find(m => m._id === id);
+            if (messageToUpdate) {
+              messageToUpdate.deletearray = [];
+            }
+          }
         }
         console.log(res)
       })
-    },
+  },
   ...mapActions({
     getChatMessage: types.GET_CHAT_MESSAGES
   })
@@ -231,19 +265,59 @@ created() {
             }
           }
         })
-        console.log('33333', this.messages)
+        console.log('444', this.messages)
       })
   
   this.socket.on('msg', (msg) => {
-    console.log('ChatOneToOne', msg)
-    if (msg.senderId ==  this.$route.params.receiverID ) {
-      this.messages.push({body: msg.msg, author: 'you'})
+    if (msg.senderId ==  localStorage.getItem('userID')) {
+       console.log('ChatOneToOne new message 2026', msg)
+       this.messages.push({body: msg.msg, author: 'bob', deletearray: msg.delete, _id: msg._id})
+       this.$nextTick(() => {
+              document.getElementsByClassName('chat-area')[0].scrollTop = '11111';                      
+        })
+    }
+   
+    else if (msg.senderId ==  this.$route.params.receiverID ) {
+      
+       {
+        console.log('ChatOneToOne new message 2025', msg)
+      this.messages.push({body: msg.msg, author: 'you', deletearray: msg.delete, _id: msg._id})
        this.$nextTick(() => {
               document.getElementsByClassName('chat-area')[0].scrollTop = '11111';                      
         }) 
+      }
     } 
    
   })
+
+  // socket for delete mesage request
+  this.socket.on('message_deleted_request', (msg) => {
+    console.log('message_deleted_request', msg)
+    const messageToUpdate = this.messages.find(m => m._id === msg.messageId);
+    if (messageToUpdate) {
+      messageToUpdate.deletearray.push(this.$route.params.receiverID);
+    }
+  })
+  //
+  // socket for delete mesage permantly
+this.socket.on('message_restore', (msg) => {
+    console.log('message_restore', msg)
+    const messageToUpdate = this.messages.find(m => m._id === msg.messageId);
+    if (messageToUpdate) {
+      messageToUpdate.deletearray = [];
+    }
+  })
+  //
+// socket for delete mesage permantly
+this.socket.on('message_delete_permenant', (msg) => {
+    console.log('message_deleted_permanent', msg)
+    this.messages = this.messages.filter(function (item) {
+      return item._id !== msg.messageId
+    })
+  })
+  //
+
+
   axios.post('http://localhost:3000/users/get-name-chat', 
   {id: this.$route.params.receiverID },
   {

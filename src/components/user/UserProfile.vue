@@ -23,11 +23,13 @@
     <br />
     
     <div class="add-btn">
-      
-      <v-layout align-center justify-center>
-        <span style="color: #e91e63; margin-right: 30px; background-clip: border-box; border-radius: 50%">
+      <div>
+        <span style="color: #e91e63; background-clip: border-box; border-radius: 50%;  text-align: center; ">
         {{userName}} 
       </span>
+       </div>
+      <v-layout align-center justify-center>
+      
         <v-flex>
           <div class="text-xs-center">
             <div style="margin-left: -20px; display: contents">
@@ -75,7 +77,7 @@
     </div>
   </div>
   </div>
-  <div>
+  <!-- <div>
     <div v-for="post in posts" :key="post._id"  @click="inPostClick(post)">
       <my-post
         :image="'http://localhost:3000/static/' + post._id + '.PNG'"
@@ -90,7 +92,31 @@
       >
       </my-post>
     </div>
-  </div>
+  </div> -->
+
+  <v-container fluid class="posts-container">
+    <v-row justify="center">
+      <v-col cols="12" v-for="post in posts" :key="post._id">
+        <div @click="inPostClick(post)" class="post-wrapper">
+          <my-post
+            class="responsive-post"
+            :image="'http://localhost:3000/static/' + post._id + '.PNG'"
+            :name="post.text"
+            :id="post._id"
+            :commentsArr="post.comments"
+            :likeNumber="post.likes.length"
+            :likesArr="post.likes"
+            :owner="post.owner"
+            :date="post.date"
+            :isEdit2="false"
+          >
+          </my-post>
+        </div>
+      </v-col>
+    </v-row>
+  </v-container>
+
+
 </div>
   
 </template>
@@ -371,5 +397,43 @@ inPostClick(post) {
 .btn-6 {
   /* margin-left: -60px; */
   width: 350px;
+}
+
+/*  */
+.responsive-post {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  /* box-shadow: 0 2px 6px rgba(0,0,0,0.1); */
+  overflow: hidden; /* يمنع انتشار الظل خارج الحدود */
+  position: relative;
+  z-index: 1; /* يضمن أن الظل يبقى ضمن الإطار */
+  background: white; /* خلفية بيضاء ثابتة */
+ 
+  transform: translateZ(0); /* تحسين أداء التصيير */
+}
+
+.post-wrapper {
+  width: 95%; /* يترك هامشاً صغيراً على الجوانب */
+  max-width: 600px; /* تحديد عرض أقصى مناسب */
+  margin: 0 auto 20px; /* توسيط مع هامش سفلي */
+}
+
+/* تعديلات للشاشات الصغيرة */
+@media (max-width: 600px) {
+  .responsive-post {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* ظل أخف على الجوال */
+  }
+  
+  .post-wrapper {
+    width: 98%; /* مساحة أكبر على الشاشات الصغيرة */
+  }
+}
+
+/* تعديلات للشاشات الكبيرة */
+@media (min-width: 1200px) {
+  .responsive-post {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1); /* ظل أكثر نعومة على الشاشات الكبيرة */
+  }
 }
 </style>

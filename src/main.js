@@ -12,12 +12,12 @@ import VueScrollTo from 'vue-scrollto'
 //import io from "socket.io-client";
 
 import {library} from '@fortawesome/fontawesome-svg-core';
-import {faPhone} from '@fortawesome/free-solid-svg-icons';
+import {faPhone, faTrash, faTrashRestore, faRedo, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome';
 
 import VueSimpleAlert from 'vue-simple-alert';
 
-library.add(faPhone);
+library.add(faPhone, faTrash, faTrashRestore, faRedo, faPaperPlane );
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 Vue.config.productionTip = false;

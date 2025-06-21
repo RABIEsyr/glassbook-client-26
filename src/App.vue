@@ -530,7 +530,7 @@ export default {
     /** End1 create PUBPLIC KEY and send it to server */
 
     this.socket.on("msg", (msg) => {
-      if (this.$route.params.receiverID !== msg.senderId) {
+      if (this.$route.params.receiverID !== msg.senderId && msg.senderId !== localStorage.getItem('userID') ) {
         console.log("App.vue current route", this.$route.params);
         console.log("App.vue msg2", msg);
         this.chatNotification++;
